@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERC20 Token Balance DApp</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.0/ethers.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 50px; text-align: center; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #f6851b; color: white; border: none; border-radius: 5px; }
+        button:hover { background-color: #e27618; }
+        #result { margin-top: 20px; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+    <h1>Mein ERC20 Token Guthaben</h1>
+    <button id="balanceButton">Guthaben abrufen</button>
+    <p id="result">Guthaben: -</p>
+
+    <script>
+        //Vertragsadresse des ERC20 Tokens
+        const contractAddress = "0xBf1C22b51a6Dc5884Faf36943D0F83b85e8ef53c"; 
+
+        const erc20Abi = [
+            "function balanceOf(address owner) view returns (uint256)"
+        ];
+
+        document.getElementById('balanceButton').addEventListener('click', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // Verbindung zu MetaMask herstellen
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const userAddress = accounts[0];
+
+                    // Provider einrichten
+                    const provider = new ethers.BrowserProvider(window.ethereum);
+                    
+                    // Prüfen, ob Netzwerk Sepolia ist (Chain ID 11155111)
+                    const network = await provider.getNetwork();
+                    if (network.chainId !== 11155111n) {
+                        alert("Bitte wechsle in MetaMask zum Sepolia Testnetzwerk!");
+                        return;
+                    }
+
+                    document.getElementById('result').innerText = "Lade Guthaben...";
+
+                    // Smart Contract über Ethers.js initialisieren
+                    const tokenContract = new ethers.Contract(contractAddress, erc20Abi, provider);
+
+                    // balanceOf() Funktion des Contracts aufrufen
+                    // Übergabe userAddress (aktuelle MetaMask Adresse) als Parameter
+                    const balance = await tokenContract.balanceOf(userAddress);
+
+                    // In lesbares Format umwandeln
+                    const formattedBalance = ethers.formatUnits(balance, 18);
+
+                    // Ergebnis auf Webseite anzeigen
+                    document.getElementById('result').innerText = `Guthaben der Adresse ${userAddress.substring(0, 6)}... : ${formattedBalance} Token`;
+                    
+                } catch (error) {
+                    console.error("Fehler:", error);
+                    alert("Es gab einen Fehler. Siehe Entwicklerkonsole für Details.");
+                }
+            } else {
+                alert("MetaMask ist nicht installiert!");
+            }
+        });
+    </script>
+
+</body>
+</html>
