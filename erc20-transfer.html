@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERC20 Token Transfer DApp</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.0/ethers.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 50px; text-align: center; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px; }
+        button:hover { background-color: #218838; }
+        #status { margin-top: 20px; font-size: 16px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Sende 10 ERC20 Token</h1>
+    <button id="transferButton">10 Token senden</button>
+    <p id="status">Status: Bereit.</p>
+
+    <script>
+        const contractAddress = "0xBf1C22b51a6Dc5884Faf36943D0F83b85e8ef53c"; 
+        
+        // Empfängeradresse
+        const recipientAddress = "0x15433DA387451F9dE4565280C85506CB71aF9376";
+
+        // Aufbau der transfer function
+        const erc20Abi = [
+            "function transfer(address to, uint256 amount) returns (bool)"
+        ];
+
+        document.getElementById('transferButton').addEventListener('click', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const statusText = document.getElementById('status');
+                    statusText.innerText = "Verbinde mit MetaMask...";
+
+                    // Verbindung zu MetaMask anfordern
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const provider = new ethers.BrowserProvider(window.ethereum);
+                    
+                    // Prüfen ob Netzwerk Sepolia ist
+                    const network = await provider.getNetwork();
+                    if (network.chainId !== 11155111n) {
+                        alert("Bitte wechsle in MetaMask zum Sepolia Testnetzwerk!");
+                        return;
+                    }
+
+                    // SIGNER abrufen
+                    const signer = await provider.getSigner();
+
+                    // Contract initialisieren (Signer übergeben)
+                    const tokenContract = new ethers.Contract(contractAddress, erc20Abi, signer);
+
+                    // Formatierung (Nachkommastellen)
+                    const amountToTransfer = ethers.parseUnits("10", 18);
+
+                    statusText.innerText = "Bitte die Transaktion in MetaMask bestätigen...";
+
+                    // Transfer Funktion auf Blockchain aufrufen
+                    const tx = await tokenContract.transfer(recipientAddress, amountToTransfer);
+
+                    statusText.innerText = `Transaktion gesendet! Warte auf Bestätigung... (Hash: ${tx.hash})`;
+
+                    // Warten bis Netzwerk Transaktion festgeschrieben hat
+                    await tx.wait();
+
+                    statusText.innerText = "Erfolgreich! Die 10 Token wurden transferiert.";
+                    
+                } catch (error) {
+                    console.error("Fehler:", error);
+                    document.getElementById('status').innerText = "Transaktion fehlgeschlagen oder abgebrochen. Siehe Konsole.";
+                }
+            } else {
+                alert("MetaMask ist nicht installiert!");
+            }
+        });
+    </script>
+
+</body>
+</html>
