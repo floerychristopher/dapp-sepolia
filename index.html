@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sepolia Block Height DApp</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.0/ethers.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 50px; text-align: center; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        #result { margin-top: 20px; font-size: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Sepolia Block Height</h1>
+    <button id="blockButton">Aktuelle Blockhöhe abrufen</button>
+    <p id="result">Blockhöhe: -</p>
+
+    <script>
+        document.getElementById('blockButton').addEventListener('click', async () => {
+            // 1. Prüfen, ob MetaMask installiert ist
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // 2. MetaMask um Erlaubnis bitten (öffnet ein Popup)
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+                    // 3. Den Provider von MetaMask (ethers.js) initialisieren
+                    const provider = new ethers.BrowserProvider(window.ethereum);
+
+                    // 4. Prüfen, ob das Netzwerk Sepolia ist (Chain ID 11155111)
+                    const network = await provider.getNetwork();
+                    if (network.chainId !== 11155111n) {
+                        alert("Bitte wechsle in MetaMask zum Sepolia Testnetzwerk!");
+                        return;
+                    }
+
+                    // 5. Die aktuelle Blockhöhe abrufen und im HTML anzeigen
+                    const blockNumber = await provider.getBlockNumber();
+                    document.getElementById('result').innerText = `Blockhöhe: ${blockNumber}`;
+                    
+                } catch (error) {
+                    console.error("Fehler:", error);
+                    alert("Es gab einen Fehler. Siehe Konsole für Details.");
+                }
+            } else {
+                alert("MetaMask ist nicht installiert!");
+            }
+        });
+    </script>
+
+</body>
+</html>
