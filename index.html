@@ -19,23 +19,23 @@
 
     <script>
         document.getElementById('blockButton').addEventListener('click', async () => {
-            // 1. Prüfen, ob MetaMask installiert ist
+            // Prüfung ob MetaMask installiert ist
             if (typeof window.ethereum !== 'undefined') {
                 try {
-                    // 2. MetaMask um Erlaubnis bitten (öffnet ein Popup)
+                    // MetaMask um Erlaubnis bitten (öffnet Popup)
                     await window.ethereum.request({ method: 'eth_requestAccounts' });
 
-                    // 3. Den Provider von MetaMask (ethers.js) initialisieren
+                    // Provider von MetaMask (ethers.js) initialisieren
                     const provider = new ethers.BrowserProvider(window.ethereum);
 
-                    // 4. Prüfen, ob das Netzwerk Sepolia ist (Chain ID 11155111)
+                    // Prüfen, ob Netzwerk Sepolia ist (Chain ID 11155111)
                     const network = await provider.getNetwork();
                     if (network.chainId !== 11155111n) {
                         alert("Bitte wechsle in MetaMask zum Sepolia Testnetzwerk!");
                         return;
                     }
 
-                    // 5. Die aktuelle Blockhöhe abrufen und im HTML anzeigen
+                    // Aktuelle Blockhöhe abrufen und im HTML anzeigen
                     const blockNumber = await provider.getBlockNumber();
                     document.getElementById('result').innerText = `Blockhöhe: ${blockNumber}`;
                     
